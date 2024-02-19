@@ -1,0 +1,129 @@
+# Copyright (C) 2024 Carlos Espinoza
+# This file is distributed under the same license as the Sendu by Software Agíl plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Sendu by Software Agíl 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/swasendu\n"
+"Last-Translator: Carlos Espinoza aecarlosae@gmail.com\n"
+"Language-Team: Spanish aecarlosae@gmail.com\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2024-02-18T13:49:40-04:00\n"
+"PO-Revision-Date: 2024-02-18 13:53\n"
+"X-Generator: WP-CLI 2.10.0\n"
+"X-Domain: swasendu\n"
+
+#. Plugin Name of the plugin
+#: swasendu.php
+msgid "Sendu by Software Agíl"
+msgstr "Sendu por Software Agíl"
+
+#. Plugin URI of the plugin
+#: swasendu.php
+msgid "https://softwareagil.com"
+msgstr "https://softwar'?page=wc-settings&tab=shipping&section=wc_shipping_swasendu'eagil.com"
+
+#. Description of the plugin
+#: swasendu.php
+msgid "Sendu courier"
+msgstr "Transportista Sendu"
+
+#. Author of the plugin
+#: swasendu.php
+msgid "Carlos Espinoza"
+msgstr "Carlos Espinoza"
+
+#. Author URI of the plugin
+#: swasendu.php
+msgid "https://github.com/aecarlosae"
+msgstr "https://github.com/aecarlosae"
+
+#: src/main.php:45
+msgid "API URL"
+msgstr "URL de la API"
+
+#: src/main.php:47
+msgid "Enter the API URL"
+msgstr "Ingrese la URL de la API"
+
+#: src/main.php:51
+msgid "User email"
+msgstr "Correo electrónico del usuario"
+
+#: src/main.php:53
+msgid "Enter the user email to authenticate in Sendu API"
+msgstr "Ingrese el correo electrónico del usuario para autenticarse en la API de Sendu"
+
+#: src/main.php:57
+msgid "User token"
+msgstr "Token del usuario"
+
+#: src/main.php:59
+msgid "Enter the user password to authenticate in Sendu API"
+msgstr "Ingrese el token del usuario para autenticarse en la API de Sendu"
+
+#: src/main.php:63
+msgid "Order status"
+msgstr "Estatus de la orden"
+
+#: src/main.php:66
+msgid "Select the status to generate Sendu work order"
+msgstr "Seleccione el estatus para generar la Orden de Trabajo Sendu"
+
+#: src/main.php:70
+#: src/main.php:72
+msgid "Lost coverage"
+msgstr "Covertura de perdida"
+
+#: src/Swasendu.php:29
+msgid "Regions"
+msgstr "Regiones"
+
+#: src/Swasendu.php:30
+msgid "A custom post type for storing regions names and ids."
+msgstr "Un tipo de post personalizado para almacenar regiones e ids"
+
+#: src/Swasendu.php:90
+msgid "Communes"
+msgstr "Comunas"
+
+#: src/Swasendu.php:91
+msgid "A custom post type for storing Communes names and ids."
+msgstr "Un tipo de post personalizado para almacenar comunas e ids"
+
+#: src/Swasendu.php:161
+msgid "couriers"
+msgstr "transportistas"
+
+#: src/Swasendu.php:162
+msgid "A custom post type for storing couriers names and ids."
+msgstr "Un tipo de post personalizado para almacenar transportistas e ids"
+
+#: src/Swasendu.php:222
+msgid "Tracking states"
+msgstr "Estados de rastreo"
+
+#: src/Swasendu.php:223
+msgid "A custom post type for storing Tracking states names and ids."
+msgstr "Un tipo de post personalizado para almacenar estados de rastreo e ids"
+
+#: src/Swasendu.php:293
+msgid "Work orders"
+msgstr "Ordenes de trabajo"
+
+#: src/Swasendu.php:294
+msgid "A custom post type for storing Work orders names and ids."
+msgstr "Un tipo de post personalizado para almacenar Ordenes de trabajo e ids"
+
+#: src/Swasendu.php:522
+msgid "Store sell"
+msgstr "Ventas de la tienda"
+
+#: src/Swasendu.php:600
+msgid "Sendu Work order:"
+msgstr "Orden de trabajo Sendu:"
+
+#: src/Swasendu.php:624
+msgid "Settings"
+msgstr "Configuración"

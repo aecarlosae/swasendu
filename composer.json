@@ -1,0 +1,21 @@
+{
+    "name": "aecarlosae/swasendu",
+    "type": "project",
+    "require": {
+        "guzzlehttp/guzzle": "^7.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "Aecarlosae\\Swasendu\\": "src/"
+        },
+        "files": [
+            "src/main.php"
+        ]
+    },
+    "authors": [
+        {
+            "name": "Carlos Espinoza",
+            "email": "aecarlosae@gmail.com"
+        }
+    ]
+}
