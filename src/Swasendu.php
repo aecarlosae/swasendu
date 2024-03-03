@@ -17,6 +17,8 @@ class Swasendu {
         self::admin_order_data_after_shipping_address();
         self::load_script();
         self::plugin_action_links_swasendu();
+        self::add_menu();
+        self::delivery_date_ajax();
     }
 
     public static function init()
@@ -92,15 +94,15 @@ class Swasendu {
                     'label' => __('Communes', 'swasendu'),
                     'description' => __('A custom post type for storing Communes names and ids.', 'swasendu'),
                     'public' => false,
-                    'show_ui' => false,
+                    'show_ui' => true,
                     'show_in_menu' => false,
                     'query_var' => true,
-                    'rewrite' => ['slug' => 'Communes'],
+                    'rewrite' => ['slug' => 'swasendu-communes'],
                     'capability_type' => 'post',
                     'has_archive' => true,
                     'hierarchical' => false,
                     'menu_position' => 5,
-                    'supports' => ['ID', 'Name'],
+                    'supports' => ['custom-fields'],
                     'labels' => [
                         'name' => __('Communes', 'Post Type General Name', 'swasendu'),
                         'singular_name' => __('Commune', 'Post Type Singular Name', 'swasendu'),
@@ -149,6 +151,16 @@ class Swasendu {
             register_post_meta(
                 'swasendu_communes',
                 'region_id',
+                [
+                    'single' => true,
+                    'type' => 'number',
+                    'show_in_admin_column' => true,
+                ]
+            );
+    
+            register_post_meta(
+                'swasendu_communes',
+                'custom_commune_cost',
                 [
                     'single' => true,
                     'type' => 'number',
@@ -597,7 +609,7 @@ class Swasendu {
                 'numberposts' => 1,
             ])[0];
 
-            if (!is_object($workOrder->id) || !$workOrder->id) {
+            if (!is_object($workOrder) || !$workOrder->id) {
                 return;
             }
             
@@ -614,17 +626,199 @@ class Swasendu {
     public static function load_script()
     {
         add_action('wp_enqueue_scripts', function () {
-            wp_enqueue_script('swasendu-js', plugins_url('../templates/js/swasendu.js', __FILE__ ));
+            $settings = get_option('woocommerce_wc_shipping_swasendu_settings');
+
+            if (is_admin()) {
+                wp_enqueue_script('swasendu-js', plugins_url('../templates/js/swasendu.js', __FILE__ ));
+            } elseif (isset($settings['show_delivery_date']) && $settings['show_delivery_date'] == 'yes') {
+                wp_enqueue_script(
+                    'swasendu-front',
+                    plugins_url('../templates/js/swasendu-front.js', __FILE__),
+                    ['jquery']
+                );
+        
+                wp_localize_script(
+                    'swasendu-front',
+                    'delivery_date', 
+                    [
+                        'ajax_url' => admin_url( 'admin-ajax.php' ),
+                        'nonce' => wp_create_nonce('swasendu-delivery-date')
+                    ]
+                );
+            }
         });
     }
 
     public static function plugin_action_links_swasendu()
     {
-        add_filter( 'plugin_action_links_' . PLUGIN_BASENAME, function($links) {
+        add_filter('plugin_action_links_' . PLUGIN_BASENAME, function($links) {
             $url = get_admin_url() . 'admin.php?page=wc-settings&tab=shipping&section=wc_shipping_swasendu';
             $links[] = '<a href="' . $url . '">' . __('Settings', 'swasendu') . '</a>';
             
             return $links;
         });
+    }
+
+    public static function add_menu()
+    {
+        add_action('admin_menu', function () { 
+            add_menu_page( 
+                __('Sendu courrier', 'swasendu'), 
+                'Sendu', 
+                'manage_options', 
+                'admin.php?page=wc-settings&tab=shipping&section=wc_shipping_swasendu',
+                '', 
+                'dashicons-screenoptions',
+                40
+            );
+            add_submenu_page(
+                'admin.php?page=wc-settings&tab=shipping&section=wc_shipping_swasendu',
+                __('Communes', 'swasendu'),
+                __('Communes', 'swasendu'),
+                'manage_options',
+                'edit.php?post_type=swasendu_communes',
+                ''
+            );
+        });
+    }
+
+    public static function delivery_date_ajax()
+    {
+        $settings = get_option('woocommerce_wc_shipping_swasendu_settings');
+
+        if (isset($settings['show_delivery_date']) && $settings['show_delivery_date'] == 'no') {
+            return;
+        } 
+
+        add_action( 'wp_ajax_delivery_date', [get_called_class(), 'delivery_date_callback']);
+        add_action( 'wp_ajax_nopriv_delivery_date', [get_called_class(), 'delivery_date_callback']);
+    }
+
+    public static function delivery_date_callback() {
+        check_ajax_referer('swasendu-delivery-date', 'nonce');
+        
+        $transitDays = get_transient(md5('swasendu-transit-days-' . get_current_user_id()));
+        $settings = get_option('woocommerce_wc_shipping_swasendu_settings');
+        $totalDays = $transitDays + $settings['preparation_days'];
+
+        if ($transitDays > 0) {
+            $transitDaysDate = (new \DateTime())
+                ->add(\DateInterval::createFromDateString($totalDays . ' days'));
+            $holidays = str_replace(' ', '', $settings['holidays']);
+            $transitDaysDateWithoutHolidays = Swasendu::removeHolidays(
+                $transitDaysDate->format('d-m-Y'),
+                isset($settings['holidays']) || !empty($settings['holidays']) ? explode(',', $holidays) : []
+            );
+            $splittedFormatedDate = explode(' ', $transitDaysDateWithoutHolidays->format('l d F Y'));
+            if (!defined('WPLANG') || constant('WPLANG') == 'es_ES') {
+                echo sprintf(
+                    '%s, %s %s %s %s %s',
+                    self::translateDateElement($splittedFormatedDate[0]),
+                    $splittedFormatedDate[1],
+                    __('of', 'swasendu'),
+                    self::translateDateElement($splittedFormatedDate[2]),
+                    __('of', 'swasendu'),
+                    $splittedFormatedDate[3]
+                );
+            } else {
+                echo $transitDaysDateWithoutHolidays->format('l d F Y');
+            }
+        } else {
+            echo '--';
+        }
+
+        wp_die(); 
+    }
+
+    public static function removeHolidays($startDate, $holidays = [], $finalFormat = 'd-m-Y', $returnObject = true) {
+        $format = 'Y-m-d';
+        $startDateObject = \DateTime::createFromFormat($format, date($format, strtotime($startDate)));
+        
+        if (!$startDateObject) {
+            return $startDate;
+        }
+    
+        do {
+            $weekDay = (int) $startDateObject->format('w');
+    
+            if (in_array($startDateObject->format($finalFormat), $holidays) || $weekDay == 0 || $weekDay == 6) {
+                $startDateObject->modify('+1 day');
+            } else {
+                break;
+            }
+        } while (true);
+    
+        if ($returnObject) {
+            return $startDateObject;
+        }
+    
+        return $startDateObject->format($finalFormat);
+    }
+
+    public static function translateDateElement($string)
+    {
+        $translatedString = $string;
+
+        switch (strtolower($string)) {
+            case 'monday':
+                $translatedString = __('Monday', 'swasendu');
+                break;
+            case 'tuesday':
+                $translatedString = __('Tuesday', 'swasendu');
+                break;
+            case 'wednesday':
+                $translatedString = __('Wednesday', 'swasendu');
+                break;
+            case 'thursday':
+                $translatedString = __('Thursday', 'swasendu');
+                break;
+            case 'friday':
+                $translatedString = __('Friday', 'swasendu');
+                break;
+            case 'saturday':
+                $translatedString = __('Saturday', 'swasendu');
+                break;
+            case 'sunday':
+                $translatedString = __('Sunday', 'swasendu');
+                break;
+            case 'january':
+                $translatedString = __('January', 'swasendu');
+                break;
+            case 'february':
+                $translatedString = __('February', 'swasendu');
+                break;
+            case 'march':
+                $translatedString = __('March', 'swasendu');
+                break;
+            case 'april':
+                $translatedString = __('April', 'swasendu');
+                break;
+            case 'may':
+                $translatedString = __('May', 'swasendu');
+                break;
+            case 'june':
+                $translatedString = __('June', 'swasendu');
+                break;
+            case 'july':
+                $translatedString = __('July', 'swasendu');
+                break;
+            case 'august':
+                $translatedString = __('August', 'swasendu');
+                break;
+            case 'september':
+                $translatedString = __('September', 'swasendu');
+                break;
+            case 'october':
+                $translatedString = __('October', 'swasendu');
+                break;
+            case 'november':
+                $translatedString = __('November', 'swasendu');
+                break;
+            case 'december':
+                $translatedString = __('December', 'swasendu');
+                break;
+        }
+
+        return $translatedString;
     }
 }

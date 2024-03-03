@@ -1,43 +1,39 @@
-# Copyright (C) 2024 Carlos Espinoza
-# This file is distributed under the same license as the Sendu by Software Agíl plugin.
+# Copyright (C) 2024 Software Agil Ltda
+# This file is distributed under the same license as the Sendu plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Sendu by Software Agíl 1.0.0\n"
+"Project-Id-Version: Sendu 1.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/swasendu\n"
 "Last-Translator: Carlos Espinoza aecarlosae@gmail.com\n"
-"Language-Team: Spanish aecarlosae@gmail.com\n"
+"Language-Team: Carlos Espinoza aecarlosae@gmail.com\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-02-18T13:49:40-04:00\n"
-"PO-Revision-Date: 2024-02-18 13:53\n"
+"POT-Creation-Date: 2024-02-28T19:24:03-04:00\n"
+"PO-Revision-Date: 2024-02-28 19:35\n"
 "X-Generator: WP-CLI 2.10.0\n"
 "X-Domain: swasendu\n"
 
 #. Plugin Name of the plugin
 #: swasendu.php
-msgid "Sendu by Software Agíl"
-msgstr "Sendu por Software Agíl"
+msgid "Sendu"
+msgstr "SendU"
 
 #. Plugin URI of the plugin
+#. Author URI of the plugin
 #: swasendu.php
-msgid "https://softwareagil.com"
-msgstr "https://softwar'?page=wc-settings&tab=shipping&section=wc_shipping_swasendu'eagil.com"
+msgid "https://www.softwareagil.com"
+msgstr "https://www.softwareagil.com"
 
 #. Description of the plugin
 #: swasendu.php
-msgid "Sendu courier"
-msgstr "Transportista Sendu"
+msgid "Sendu for woocommerce"
+msgstr "SendU para Woocommerce"
 
 #. Author of the plugin
 #: swasendu.php
-msgid "Carlos Espinoza"
-msgstr "Carlos Espinoza"
-
-#. Author URI of the plugin
-#: swasendu.php
-msgid "https://github.com/aecarlosae"
-msgstr "https://github.com/aecarlosae"
+msgid "Software Agil Ltda"
+msgstr "Software Agil Ltda"
 
 #: src/main.php:45
 msgid "API URL"
@@ -53,7 +49,7 @@ msgstr "Correo electrónico del usuario"
 
 #: src/main.php:53
 msgid "Enter the user email to authenticate in Sendu API"
-msgstr "Ingrese el correo electrónico del usuario para autenticarse en la API de Sendu"
+msgstr "Ingrese el correo electrónico del usuario para autenticarse en la API de SendU"
 
 #: src/main.php:57
 msgid "User token"
@@ -61,69 +57,218 @@ msgstr "Token del usuario"
 
 #: src/main.php:59
 msgid "Enter the user password to authenticate in Sendu API"
-msgstr "Ingrese el token del usuario para autenticarse en la API de Sendu"
+msgstr "Ingrese la contraseña para autenticarse en la API de SendU"
 
 #: src/main.php:63
 msgid "Order status"
-msgstr "Estatus de la orden"
+msgstr "Estado de la orden"
 
 #: src/main.php:66
 msgid "Select the status to generate Sendu work order"
-msgstr "Seleccione el estatus para generar la Orden de Trabajo Sendu"
+msgstr "Seleccione el estado para generar la Orden de trabajo en SendU"
 
 #: src/main.php:70
 #: src/main.php:72
 msgid "Lost coverage"
-msgstr "Covertura de perdida"
+msgstr "Cobertura de perdida"
 
-#: src/Swasendu.php:29
+#: src/main.php:76
+#: src/main.php:78
+msgid "Show courier name"
+msgstr "Mostrar el nombre del transportista"
+
+#: src/main.php:82
+msgid "Unavailable shipping message"
+msgstr "Mensaje para envíos no disponibles"
+
+#: src/main.php:84
+msgid "Enter the unavailable shipping message"
+msgstr "Ingrese el mensaje para envíos no disponibles"
+
+#: src/main.php:85
+msgid "No available shipping for your commune"
+msgstr "No hay envío disponible para tu comuna"
+
+#: src/main.php:88
+#: src/main.php:90
+msgid "Show estimated delivery date"
+msgstr "Mostrar la fecha estimada"
+
+#: src/main.php:94
+msgid "Preparation days"
+msgstr "Días de preparación"
+
+#: src/main.php:96
+msgid "Number of day to add to the transit days for delivery date"
+msgstr "Número de días que se deben sumar a los días de transito para cualcular la fecha de entrega"
+
+#: src/main.php:103
+msgid "Preparation days must be greater than 0"
+msgstr "El número de días de preparación debe ser mayor a cero"
+
+#: src/main.php:439
+msgid "Sendu cannot rate because invalid weight for product \"%s\""
+msgstr "SendU no puede tarificar porque el peso del producto \"%s\" no es válido"
+
+#: src/main.php:451
+msgid "Sendu cannot rate because invalid height for product \"%s\""
+msgstr "SendU no puede tarificar porque la altura del producto \"%s\" no es válida"
+
+#: src/main.php:463
+msgid "Sendu cannot rate because invalid length for product \"%s\""
+msgstr "SendU no puede tarificar porque la longitud del producto \"%s\" no es válida"
+
+#: src/main.php:475
+msgid "Sendu cannot rate because invalid width for product \"%s\""
+msgstr "SendU no puede tarificar porque el ancho del producto \"%s\" no es válido"
+
+#: src/Swasendu.php:33
 msgid "Regions"
 msgstr "Regiones"
 
-#: src/Swasendu.php:30
+#: src/Swasendu.php:34
 msgid "A custom post type for storing regions names and ids."
-msgstr "Un tipo de post personalizado para almacenar regiones e ids"
+msgstr "Un Custom Post Type para almacenar las regiones"
 
-#: src/Swasendu.php:90
+#: src/Swasendu.php:94
+#: src/Swasendu.php:676
+#: src/Swasendu.php:677
 msgid "Communes"
 msgstr "Comunas"
 
-#: src/Swasendu.php:91
+#: src/Swasendu.php:95
 msgid "A custom post type for storing Communes names and ids."
-msgstr "Un tipo de post personalizado para almacenar comunas e ids"
+msgstr "Un Custom Post Type para almacenar las comunas"
 
-#: src/Swasendu.php:161
+#: src/Swasendu.php:175
 msgid "couriers"
-msgstr "transportistas"
+msgstr "Transportistas"
 
-#: src/Swasendu.php:162
+#: src/Swasendu.php:176
 msgid "A custom post type for storing couriers names and ids."
-msgstr "Un tipo de post personalizado para almacenar transportistas e ids"
+msgstr "Un Custom Post Type para almacenar los transportistas"
 
-#: src/Swasendu.php:222
+#: src/Swasendu.php:236
 msgid "Tracking states"
 msgstr "Estados de rastreo"
 
-#: src/Swasendu.php:223
+#: src/Swasendu.php:237
 msgid "A custom post type for storing Tracking states names and ids."
-msgstr "Un tipo de post personalizado para almacenar estados de rastreo e ids"
+msgstr "Un Custom Post Type para almacenar los Estados de rastreo"
 
-#: src/Swasendu.php:293
+#: src/Swasendu.php:307
 msgid "Work orders"
 msgstr "Ordenes de trabajo"
 
-#: src/Swasendu.php:294
+#: src/Swasendu.php:308
 msgid "A custom post type for storing Work orders names and ids."
-msgstr "Un tipo de post personalizado para almacenar Ordenes de trabajo e ids"
+msgstr "Un Custom Post Type para almacenar las Ordenes de trabajo"
 
-#: src/Swasendu.php:522
+#: src/Swasendu.php:536
 msgid "Store sell"
-msgstr "Ventas de la tienda"
+msgstr "Venta por tienda"
 
-#: src/Swasendu.php:600
+#: src/Swasendu.php:618
 msgid "Sendu Work order:"
-msgstr "Orden de trabajo Sendu:"
+msgstr "Orden de trabjo SendU:"
 
-#: src/Swasendu.php:624
+#: src/Swasendu.php:656
 msgid "Settings"
 msgstr "Configuración"
+
+#: src/Swasendu.php:666
+msgid "Sendu courrier"
+msgstr "Transportista SendU"
+
+#: src/Swasendu.php:715
+#: src/Swasendu.php:717
+msgid "of"
+msgstr "de"
+
+#: src/Swasendu.php:736
+msgid "Monday"
+msgstr "Lunes"
+
+#: src/Swasendu.php:739
+msgid "Tuesday"
+msgstr "Martes"
+
+#: src/Swasendu.php:742
+msgid "Wednesday"
+msgstr "Miercoles"
+
+#: src/Swasendu.php:745
+msgid "Thursday"
+msgstr "Jueves"
+
+#: src/Swasendu.php:748
+msgid "Friday"
+msgstr "Viernes"
+
+#: src/Swasendu.php:751
+msgid "Saturday"
+msgstr "Sábado"
+
+#: src/Swasendu.php:754
+msgid "Sunday"
+msgstr "Domingo"
+
+#: src/Swasendu.php:757
+msgid "January"
+msgstr "Enero"
+
+#: src/Swasendu.php:760
+msgid "February"
+msgstr "Febrero"
+
+#: src/Swasendu.php:763
+msgid "March"
+msgstr "Marzo"
+
+#: src/Swasendu.php:766
+msgid "April"
+msgstr "Abril"
+
+#: src/Swasendu.php:769
+msgid "May"
+msgstr "Mayo"
+
+#: src/Swasendu.php:772
+msgid "June"
+msgstr "Junio"
+
+#: src/Swasendu.php:775
+msgid "July"
+msgstr "Julio"
+
+#: src/Swasendu.php:778
+msgid "August"
+msgstr "Agosto"
+
+#: src/Swasendu.php:781
+msgid "September"
+msgstr "Septiembre"
+
+#: src/Swasendu.php:784
+msgid "October"
+msgstr "Octubre"
+
+#: src/Swasendu.php:787
+msgid "November"
+msgstr "Noviembre"
+
+#: src/Swasendu.php:790
+msgid "December"
+msgstr "Diciembre"
+
+#: swasendu.php:54
+msgid "Delivery date"
+msgstr "Fecha de entrega"
+
+#: src/main.php:110
+msgid "Holidays"
+msgstr "Días Feriados"
+
+#: src/main.php:110
+msgid "Enter the holiday in format: dd-mm-yyyy separated by comma"
+msgstr "Ingrese los días feriados en el formato: dd-mm-yyyy separados por coma"

@@ -12,8 +12,8 @@ function swasendu() {
             public function __construct()
             {
                 $this->id = 'wc_shipping_swasendu';
-                $this->method_title = __( 'Software Agíl Sendu' );
-                $this->method_description = __( 'Software Agíl Sendu' );
+                $this->method_title = __( 'Sendu' );
+                $this->method_description = __( 'Sendu for woocommerce' );
 
                 $this->enabled = 'yes';
                 $this->title = 'Sendu';
@@ -71,6 +71,45 @@ function swasendu() {
                         'type' => 'checkbox',
                         'description' => __( 'Lost coverage', 'swasendu'),
                         'default' => false
+                    ],
+                    'show_courier_name' => [
+                        'title' => __('Show courier name', 'swasendu'),
+                        'type' => 'checkbox',
+                        'description' => __( 'Show courier name', 'swasendu'),
+                        'default' => true
+                    ],
+                    'unavailable_shipping_msg' => [
+                        'title' => __('Unavailable shipping message', 'swasendu'),
+                        'type' => 'text',
+                        'description' => __( 'Enter the unavailable shipping message', 'swasendu'),
+                        'default' => __( 'No available shipping for your commune', 'swasendu')
+                    ],
+                    'show_delivery_date' => [
+                        'title' => __('Show estimated delivery date', 'swasendu'),
+                        'type' => 'checkbox',
+                        'description' => __('Show estimated delivery date', 'swasendu'),
+                        'default' => true
+                    ],
+                    'preparation_days' => [
+                        'title' => __('Preparation days', 'swasendu'),
+                        'type' => 'number',
+                        'description' => __('Number of day to add to the transit days for delivery date', 'swasendu'),
+                        'default' => 0,
+                        'custom_attributes' => [
+                            'min' => 0
+                        ],
+                        'sanitize_callback' => function($value) {
+                            if ($value < 0) {
+                                throw new \Exception(__('Preparation days must be greater than 0', 'swasendu'));
+                            }
+                        
+                            return $value;
+                          }
+                    ],
+                    'holidays' => [
+                        'title' => __('Holidays', 'swasendu'),
+                        'type' => 'textarea',
+                        'description' => __('Enter the holiday in format: dd-mm-yyyy separated by comma', 'swasendu')
                     ],
                 ];
             }
@@ -164,6 +203,7 @@ function swasendu() {
                                         'name' => $communesByRegion[1],
                                         'commune_id' => $communesByRegion[0],
                                         'region_id' => $post->region_id,
+                                        'custom_commune_cost' => '',
                                     ]
                                 ];
             
@@ -286,6 +326,10 @@ function swasendu() {
 
                     if (count($package['contents']) > 1) {
                         foreach ($package['contents'] as $content) {
+                            if (!$this->validateDimensions($content['data'])) {
+                                return;
+                            }
+
                             $totalWeight += $content['quantity'] * $content['data']->get_weight();
                             $cubage += (
                                 floatval($content['data']->get_height())
@@ -306,14 +350,20 @@ function swasendu() {
                         $deepDimension = $cubage / $heightDimension / $largeDimension;
                     } else {
                         $content = $package['contents'][array_key_first($package['contents'])];
+
+                        if (!$this->validateDimensions($content['data'])) {
+                            return;
+                        }
+
                         $totalWeight += $content['quantity'] * $content['data']->get_weight();
                         $heightDimension = $content['data']->get_height();
                         $largeDimension = $content['data']->get_length();
                         $deepDimension = $content['data']->get_width();
                     }
 
+                    $communeId = (int) str_replace('C-', '', $package['destination']['state']);
                     $requestBody = [
-                        'to' => (int) str_replace('C-', '', $package['destination']['state']),
+                        'to' => $communeId,
                         'weight' => floatval($totalWeight),
                         'price_products' => (int) round($package['contents_cost']),
                         'dimensions' => [
@@ -324,6 +374,7 @@ function swasendu() {
                     ];
 
                     $swasenduTransient = get_transient('swasendu-' . md5(json_encode($requestBody)));
+
                     if ((bool)$swasenduTransient) {
                         $rate = json_decode($swasenduTransient);
                     } else {
@@ -343,6 +394,16 @@ function swasendu() {
                         );
 
                         $rate = json_decode($responseContent);
+                        set_transient(
+                            md5('swasendu-transit-days-' . get_current_user_id()),
+                            $rate->transit_days,
+                            500
+                        );
+                    }
+
+                    if ($rate->transit_days == -1 && strtolower($rate->message) === 'error interno.') {
+                        wc_add_notice($this->get_option('unavailable_shipping_msg'), 'error');
+                        return;
                     }
 
                     $courier = get_posts([
@@ -352,15 +413,80 @@ function swasendu() {
                         'numberposts' => 1,
                     ])[0];
 
+                    $commune = get_posts([
+                        'post_type' => 'swasendu_communes',
+                        'meta_key' => 'commune_id',
+                        'meta_value' => $communeId,
+                        'numberposts' => 1,
+                    ])[0];
+
                     $this->add_rate([
-                        'id' => sprintf('%s-%s', $rate->courier_id, $courier->name),
-                        'label' => $courier->name,
-                        'cost' => $rate->customer_cost,
+                        'id' => sprintf('swasendu-shipping-option-%s-%s', $rate->courier_id, $courier->name),
+                        'label' => $this->get_option('show_courier_name') == 'yes' ? $courier->name : $this->title,
+                        'cost' => (
+                            $commune->custom_commune_cost != ''
+                            ? $commune->custom_commune_cost
+                            : $rate->customer_cost
+                        ),
                         'calc_tax' => 'per_item',
                     ]);
                 } catch (GuzzleException $e) {
+                    wc_add_notice($e->getMessage(), 'error');
                     (new WC_Logger())->log('error', $e->getMessage());
                 }
+            }
+
+            public function validateDimensions($product)
+            {
+                if (empty($product->get_weight())) {
+                    wc_add_notice(
+                        sprintf(
+                            __('Sendu cannot rate because invalid weight for product "%s"', 'swasendu'),
+                            $product->get_name()
+                        ),
+                        'error'
+                    );
+
+                    return false;
+                }
+
+                if (empty($product->get_height())) {
+                    wc_add_notice(
+                        sprintf(
+                            __('Sendu cannot rate because invalid height for product "%s"', 'swasendu'),
+                            $product->get_name()
+                        ),
+                        'error'
+                    );
+                    
+                    return false;
+                }
+
+                if (empty($product->get_length())) {
+                    wc_add_notice(
+                        sprintf(
+                            __('Sendu cannot rate because invalid length for product "%s"', 'swasendu'),
+                            $product->get_name()
+                        ),
+                        'error'
+                    );
+                    
+                    return false;
+                }
+
+                if (empty($product->get_width())) {
+                    wc_add_notice(
+                        sprintf(
+                            __('Sendu cannot rate because invalid width for product "%s"', 'swasendu'),
+                            $product->get_name()
+                        ),
+                        'error'
+                    );
+                    
+                    return false;
+                }
+
+                return true;
             }
         }
     }
