@@ -45,19 +45,16 @@ function swasendu() {
                         'title' => __('API URL', 'swasendu'),
                         'type' => 'text',
                         'description' => __( 'Enter the API URL', 'swasendu'),
-                        'default' => 'https://app.sendu.cl/api/'
                     ],
                     'user_email' => [
                         'title' => __('User email', 'swasendu'),
                         'type' => 'text',
                         'description' => __('Enter the user email to authenticate in Sendu API', 'swasendu'),
-                        'default' => 'soporte@sendu.cl'
                     ],
                     'user_token' => [
                         'title' => __('User token', 'swasendu'),
                         'type' => 'text',
                         'description' => __( 'Enter the user password to authenticate in Sendu API', 'swasendu'),
-                        'default' => 'WZAxajMgsyns6s3ipGGQ'
                     ],
                     'order_status' => [
                         'title' => __('Order status', 'swasendu'),

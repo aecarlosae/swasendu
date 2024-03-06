@@ -524,7 +524,11 @@ class Swasendu {
                         'meta_value' => $communeId,
                         'numberposts' => 1,
                     ])[0];
-
+                    
+                    $numComplement = explode(' ', $user['shipping_address_2'][0] ?? '');
+                    $addressNumber = $numComplement[0] ?? 'Sin numeración';
+                    unset($numComplement[0]);
+                    $addressComplement = implode(' ', $numComplement);
                     $response = $client->request(
                         'POST',
                         sprintf('%s/%s', $settings['api_url'], 'work_orders.json'),
@@ -540,7 +544,7 @@ class Swasendu {
                                             $user['shipping_last_name'][0]
                                         ),
                                         'email' => $user['billing_email'][0],
-                                        'phone' => $user['shipping_phone'][0] ?? '5555555',
+                                        'phone' => $user['shipping_phone'][0] ?? '',
                                         'weight' => floatval($totalWeight),
                                         'height' => floatval($heightDimension),
                                         'large' => floatval($largeDimension),
@@ -552,8 +556,10 @@ class Swasendu {
                                             'region_id' => (int) $commune->region_id,
                                             'comuna_id' => $communeId,
                                             'street' => $user['shipping_address_1'][0],
-                                            'numeration' => '',
-                                            'complement' => $user['shipping_city'][0]
+                                            'numeration' => $addressNumber,
+                                            'complement' => (
+                                                empty($addressComplement) ? 'Sin complemento' : $addressComplement
+                                            )
                                         ]
                                     ]
                                 ],
@@ -607,7 +613,7 @@ class Swasendu {
                 'meta_key' => 'order',
                 'meta_value' => $order->get_id(),
                 'numberposts' => 1,
-            ])[0];
+            ])[0] ?? null;
 
             if (!is_object($workOrder) || !$workOrder->id) {
                 return;
