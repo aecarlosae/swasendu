@@ -9,6 +9,10 @@ function swasendu() {
     if (!class_exists( 'WC_Shipping_Swasendu')) {
         class WC_Shipping_Swasendu extends \WC_Shipping_Method
         {
+            private $swasendu_api_url = '';
+            private $swasendu_user_email = '';
+            private $swasendu_user_token = '';
+
             public function __construct()
             {
                 $this->id = 'wc_shipping_swasendu';
@@ -27,15 +31,19 @@ function swasendu() {
                 $this->init_form_fields();
                 $this->init_settings();
 
-                if ($this->validateSettingForm()) {
-                    $this->getRegions();
-                    $this->getCommunes();
-                    $this->getCouriers();
-                    $this->getTrackingStates();
-                }
-
                 // Save settings in admin if you have any defined
                 add_action('woocommerce_update_options_shipping_' . $this->id, [$this, 'process_admin_options']);
+
+                if ($this->validateSettingForm()) {
+                    (new WC_Logger())->info(__( 'Getting regions...', 'swasendu'));
+                    $this->getRegions();
+                    (new WC_Logger())->info(__( 'Getting communes...', 'swasendu'));
+                    $this->getCommunes();
+                    (new WC_Logger())->info(__( 'Getting couriers...', 'swasendu'));
+                    $this->getCouriers();
+                    (new WC_Logger())->info(__( 'Getting tracking states...', 'swasendu'));
+                    $this->getTrackingStates();
+                }
             }
 
             function init_form_fields()
@@ -111,6 +119,29 @@ function swasendu() {
                 ];
             }
 
+            /**
+             * Output the shipping settings screen.
+             */
+            public function admin_options() {
+                if ( ! $this->instance_id ) {
+                    echo '<h2>' . esc_html( $this->get_method_title() ) . '</h2>';
+                }
+
+                echo wp_kses_post( wpautop( $this->get_method_description() ) );
+                echo $this->get_admin_options_html();
+
+                if (!(new \WP_Query(['post_type' => 'swasendu_communes']))->have_posts()) {
+                    $customMessage = __(
+                        'Al guardar la configuración de SendU, espere hasta que el proceso termine!',
+                        'swasendu'
+                    );
+
+                    echo '<div style="border: 1px solid #c3c4c7;border-left-color: #72aee6;background: #fff;padding: 1px 12px;border-left-width: 4px;box-shadow: 0 1px 1px rgba(0,0,0,.04);">
+                        <p style="font-weight: bold;color:orange;">' . $customMessage . '</p>
+                    </div>';
+                }
+            }
+
             public function validateSettingForm()
             {
                 $prefix = 'woocommerce_wc_shipping_swasendu_';
@@ -119,6 +150,9 @@ function swasendu() {
                     && isset($_POST[$prefix . 'user_email']) && !empty($_POST[$prefix . 'user_email'])
                     && isset($_POST[$prefix . 'user_token']) && !empty($_POST[$prefix . 'user_token'])
                 ) {
+                    $this->swasendu_api_url = $_POST[$prefix . 'api_url'];
+                    $this->swasendu_user_email = $_POST[$prefix . 'user_email'];
+                    $this->swasendu_user_token = $_POST[$prefix . 'user_token'];
                     return true;
                 }
                 return false;
@@ -130,13 +164,13 @@ function swasendu() {
                     try {
                         $client = new HttpClient([
                             'headers' => [
-                                'X-User-Email' => $this->get_option('user_email'),
-                                'X-User-Token' => $this->get_option('user_token'),
+                                'X-User-Email' => $this->get_option('user_email', $this->swasendu_user_email),
+                                'X-User-Token' => $this->get_option('user_token', $this->swasendu_user_token),
                             ]
                         ]);
                         $response = $client->request(
                             'GET',
-                            sprintf('%s/%s', $this->get_option('api_url'), 'regions.json')
+                            sprintf('%s/%s', $this->get_option('api_url', $this->swasendu_api_url), 'regions.json')
                         );
                         $regions = json_decode($response->getBody()->getContents());
         
@@ -174,8 +208,8 @@ function swasendu() {
                         ]);
                         $client = new HttpClient([
                             'headers' => [
-                                'X-User-Email' => $this->get_option('user_email'),
-                                'X-User-Token' => $this->get_option('user_token'),
+                                'X-User-Email' => $this->get_option('user_email', $this->swasendu_user_email),
+                                'X-User-Token' => $this->get_option('user_token', $this->swasendu_user_token),
                             ]
                         ]);
 
@@ -184,7 +218,7 @@ function swasendu() {
                                 'GET',
                                 sprintf(
                                     '%s/%s?region_id=%s',
-                                    $this->get_option('api_url'),
+                                    $this->get_option('api_url', $this->swasendu_api_url),
                                     'comunas_by_region.json',
                                     $post->region_id
                                 )
@@ -224,13 +258,13 @@ function swasendu() {
                     try {
                         $client = new HttpClient([
                             'headers' => [
-                                'X-User-Email' => $this->get_option('user_email'),
-                                'X-User-Token' => $this->get_option('user_token'),
+                                'X-User-Email' => $this->get_option('user_email', $this->swasendu_user_email),
+                                'X-User-Token' => $this->get_option('user_token', $this->swasendu_user_token),
                             ]
                         ]);
                         $response = $client->request(
                             'GET',
-                            sprintf('%s/%s', $this->get_option('api_url'), 'couriers.json')
+                            sprintf('%s/%s', $this->get_option('api_url', $this->swasendu_api_url), 'couriers.json')
                         );
                         $couriers = json_decode($response->getBody()->getContents());
         
@@ -264,13 +298,13 @@ function swasendu() {
                     try {
                         $client = new HttpClient([
                             'headers' => [
-                                'X-User-Email' => $this->get_option('user_email'),
-                                'X-User-Token' => $this->get_option('user_token'),
+                                'X-User-Email' => $this->get_option('user_email', $this->swasendu_user_email),
+                                'X-User-Token' => $this->get_option('user_token', $this->swasendu_user_token),
                             ]
                         ]);
                         $response = $client->request(
                             'GET',
-                            sprintf('%s/%s', $this->get_option('api_url'), 'tracking_states.json')
+                            sprintf('%s/%s', $this->get_option('api_url', $this->swasendu_api_url), 'tracking_states.json')
                         );
                         $trackingStates = json_decode($response->getBody()->getContents());
         
@@ -302,14 +336,15 @@ function swasendu() {
             public function calculate_shipping($package = [])
             {
                 if ($package['destination']['country'] != 'CL') {
+                    (new WC_Logger())->info(__( 'SendU cannot rate in your country.', 'swasendu'));
                     return;
                 }
                 
                 try {
                     $client = new HttpClient([
                         'headers' => [
-                            'X-User-Email' => $this->get_option('user_email'),
-                            'X-User-Token' => $this->get_option('user_token'),
+                            'X-User-Email' => $this->get_option('user_email', $this->swasendu_user_email),
+                            'X-User-Token' => $this->get_option('user_token', $this->swasendu_user_token),
                             'Content-Type' => 'application/json',
                         ]
                     ]);
@@ -377,7 +412,7 @@ function swasendu() {
                     } else {
                         $response = $client->request(
                             'GET',
-                            sprintf('%s/%s', $this->get_option('api_url'), 'calculator.json'),
+                            sprintf('%s/%s', $this->get_option('api_url', $this->swasendu_api_url), 'calculator.json'),
                             [
                                 'body' => json_encode($requestBody, JSON_PRESERVE_ZERO_FRACTION),
                             ]

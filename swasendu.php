@@ -24,6 +24,8 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     register_uninstall_hook(__FILE__, 'swasendu_uninstall');
     
     function swasendu_uninstall() {
+        delete_option('woocommerce_wc_shipping_swasendu_settings');
+        
         $posts = get_posts([
             'post_type' => 'swasendu_communes',
             'numberposts' => -1
