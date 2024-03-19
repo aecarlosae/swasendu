@@ -477,7 +477,17 @@ class Swasendu {
                 'number',
                 [
                     'single' => true,
-                    'type' => 'number',
+                    'type' => 'string',
+                    'show_in_admin_column' => true,
+                ]
+            );
+
+            register_post_meta(
+                'swasendu_useraddress',
+                'email',
+                [
+                    'single' => true,
+                    'type' => 'string',
                     'show_in_admin_column' => true,
                 ]
             );
@@ -499,13 +509,15 @@ class Swasendu {
 
     public static function provinces()
     {
-        add_filter('woocommerce_states', function ( $states ) {
+        add_filter('woocommerce_states', function($states) {
             $communes = get_posts([
                 'post_type' => 'swasendu_communes',
                 'numberposts' => -1
             ]);
     
             $communeList = [];
+            // Remove CL default states
+            unset($states['CL']);
     
             foreach ($communes as $commune) {
                 $communeList['C-' . $commune->commune_id] = $commune->name;
@@ -533,14 +545,13 @@ class Swasendu {
                     'meta_key' => 'order',
                     'meta_value' => $orderId,
                     'numberposts' => 1,
-                ])[0];
+                ])[0] ?? null;
 
-                if ($work_order->id) {
+                if ($work_order && $work_order->id) {
                     return;
                 }
 
                 $order = wc_get_order($orderId);
-                $user = get_user_meta($order->get_customer_id());
                 $totalWeight = 0;
                 $dimensions = [];
                 $cubage = 0;
@@ -588,7 +599,7 @@ class Swasendu {
                         ]
                     ]);
 
-                    $communeId = (int) str_replace('C-', '', $user['shipping_state']);
+                    $communeId = (int) str_replace('C-', '', $order->get_shipping_state());
                     $commune = get_posts([
                         'post_type' => 'swasendu_communes',
                         'meta_key' => 'commune_id',
@@ -608,11 +619,11 @@ class Swasendu {
                             'category' => $settings['sell_category'] ?? __('Store sell', 'swasendu'),
                             'name' => sprintf(
                                 '%s %s',
-                                $user['shipping_first_name'][0],
-                                $user['shipping_last_name'][0]
+                                $order->get_shipping_first_name(),
+                                $order->get_shipping_last_name()
                             ),
-                            'email' => $user['billing_email'][0],
-                            'phone' => $user['shipping_phone'][0] ?? '',
+                            'email' => $order->get_billing_email(),
+                            'phone' => $order->get_shipping_phone(),
                             'weight' => floatval($totalWeight),
                             'height' => floatval($heightDimension),
                             'large' => floatval($largeDimension),
@@ -623,12 +634,13 @@ class Swasendu {
                             'direction' => [
                                 'region_id' => (int) $commune->region_id,
                                 'comuna_id' => $communeId,
-                                'street' => $user['shipping_address_1'][0],
+                                'street' => $order->get_shipping_address_1(),
                                 'numeration' => $swasenduUserAddress->number,
-                                'complement' => $user['shipping_address_2'][0] ?? ''
+                                'complement' => $order->get_shipping_address_2()
                             ]
                         ]
                     ];
+                    
                     $response = $client->request(
                         'POST',
                         sprintf('%s/%s', $settings['api_url'], 'work_orders.json'),
@@ -785,8 +797,8 @@ class Swasendu {
     public static function delivery_date_ajax()
     {
         // TODO: change "delivery_date" name, show be a general one. See occurrencies
-        add_action( 'wp_ajax_delivery_date', [get_called_class(), 'delivery_date_callback']);
-        add_action( 'wp_ajax_nopriv_delivery_date', [get_called_class(), 'delivery_date_callback']);
+        add_action('wp_ajax_delivery_date', [get_called_class(), 'delivery_date_callback']);
+        add_action('wp_ajax_nopriv_delivery_date', [get_called_class(), 'delivery_date_callback']);
     }
 
     public static function delivery_date_callback() {
@@ -799,13 +811,19 @@ class Swasendu {
             'delivery_date' => '',
             'address_rut' => '',
             'address_number' => '',
+            'user_id' => wp_get_current_user(),
         ];
-        $swasenduUserAddress = get_posts([
-            'post_type' => 'swasendu_useraddress',
-            'meta_key' => 'user_id',
-            'meta_value' => get_current_user_id(),
-            'numberposts' => 1,
-        ])[0];
+
+        $swasenduUserAddress = null;
+
+        if (isset($_POST['address_email']) && !empty($_POST['address_email'])) {
+            $swasenduUserAddress = get_posts([
+                'post_type' => 'swasendu_useraddress',
+                'meta_key' => 'email',
+                'meta_value' => !empty($_POST['address_email']) ? $_POST['address_email'] : null,
+                'numberposts' => 1,
+            ])[0];
+        }
 
         if ($swasenduUserAddress) {
             $response['address_rut'] = $swasenduUserAddress->rut;
@@ -818,18 +836,30 @@ class Swasendu {
         ) {
             
             if (!$swasenduUserAddress) {
-                $userShippingAddressData = [
-                    'post_title' => $_POST['address_rut'],
+                wp_insert_post([
+                    'post_title' => $_POST['address_email'],
                     'post_type' => 'swasendu_useraddress',
                     'post_status' => 'publish',
                     'meta_input' => [
                         'user_id' => get_current_user_id(),
                         'rut' => $_POST['address_rut'],
                         'number' => $_POST['address_number'],
+                        'email' => $_POST['address_email'],
                     ]
-                ];
-
-                wp_insert_post($userShippingAddressData);
+                ]);
+            } else {
+                wp_update_post([
+                    'ID' => $swasenduUserAddress->ID,
+                    'post_title' => $_POST['address_email'],
+                    'post_type' => 'swasendu_useraddress',
+                    'post_status' => 'publish',
+                    'meta_input' => [
+                        'user_id' => get_current_user_id(),
+                        'rut' => $_POST['address_rut'],
+                        'number' => $_POST['address_number'],
+                        'email' => $_POST['address_email'],
+                    ]
+                ]);
             }
         }
 

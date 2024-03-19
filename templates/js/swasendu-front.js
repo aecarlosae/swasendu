@@ -75,18 +75,23 @@ window.addEventListener('load', function () {
 
     setInterval(
         () => {
+            let address_rut = null;
+            let address_number = null;
+
             if (
                 /^\s*$/.test(jQuery('#shipping-swasendu_address_rut').val())
                 || /^\s*$/.test(jQuery('#shipping-swasendu_address_number').val())
             ) {
                 jQuery('.wc-block-components-checkout-place-order-button').prop('disabled', true);
 
-                if (/^\s*$/.test(jQuery("#shipping-swasendu_address_rut").val())) {
-                    jQuery("#shipping-swasendu_address_rut").focus();
-                } else if (/^\s*$/.test(jQuery("#shipping-swasendu_address_number").val())) {
-                    jQuery("#shipping-swasendu_address_number").focus();
-                }
+                // if (/^\s*$/.test(jQuery("#shipping-swasendu_address_rut").val())) {
+                //     jQuery("#shipping-swasendu_address_rut").focus();
+                // } else if (/^\s*$/.test(jQuery("#shipping-swasendu_address_number").val())) {
+                //     jQuery("#shipping-swasendu_address_number").focus();
+                // }
             } else {
+                address_rut = jQuery('#shipping-swasendu_address_rut').val();
+                address_number = jQuery('#shipping-swasendu_address_number').val();
                 jQuery('.wc-block-components-checkout-place-order-button').prop('disabled', false);
             }
 
@@ -95,19 +100,20 @@ window.addEventListener('load', function () {
                 type: 'post',
                 data: {
                     action: 'delivery_date',
-                    address_rut: jQuery('#shipping-swasendu_address_rut').val(),
-                    address_number: jQuery('#shipping-swasendu_address_number').val(),
+                    address_email: jQuery('#email').val(),
+                    address_rut: address_rut,
+                    address_number: address_number,
                     nonce: delivery_date.nonce,
                 },
                 success: function(response) {
-                    if (response.address_rut != '') {
+                    if (response.address_rut != '' && jQuery('#shipping-swasendu_address_rut').val() == '') {
                         jQuery('#shipping-swasendu_address_rut').val(response.address_rut);
                         jQuery("#shipping-swasendu_address_rut").parent().find('.swasendu-error-message').remove();
                         jQuery("#shipping-swasendu_address_rut").parent().removeClass('has-error');
                         jQuery("#shipping-swasendu_address_rut").parent().addClass('is-active');
                     }
 
-                    if (response.address_number != '') {
+                    if (response.address_number != '' && jQuery('#shipping-swasendu_address_number').val() == '') {
                         jQuery('#shipping-swasendu_address_number').val(response.address_number);
                         jQuery("#shipping-swasendu_address_number").parent().addClass('is-active');
                         jQuery("#shipping-swasendu_address_number").parent().find('.swasendu-error-message').remove();

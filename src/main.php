@@ -405,6 +405,8 @@ function swasendu() {
                         ]
                     ];
 
+                    (new WC_Logger())->log('info', sprintf('Rate data: %s', json_encode($requestBody)));
+
                     $swasenduTransient = get_transient('swasendu-' . md5(json_encode($requestBody)));
 
                     if ((bool)$swasenduTransient) {
