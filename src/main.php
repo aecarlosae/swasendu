@@ -64,6 +64,18 @@ function swasendu() {
                         'type' => 'text',
                         'description' => __( 'Enter the user password to authenticate in Sendu API', 'swasendu'),
                     ],
+                    'weight_and_dimensions_required' => [
+                        'title' => __('Product weight and dimesions required to rate', 'swasendu'),
+                        'type' => 'checkbox',
+                        'description' => __( 'Product weight and dimesions required to rate', 'swasendu'),
+                        'default' => false
+                    ],
+                    'disable_work_order_generation' => [
+                        'title' => __('Disable work order generation', 'swasendu'),
+                        'type' => 'checkbox',
+                        'description' => __( 'Disable work order generation', 'swasendu'),
+                        'default' => true
+                    ],
                     'order_status' => [
                         'title' => __('Order status', 'swasendu'),
                         'type' => 'select',
@@ -354,9 +366,10 @@ function swasendu() {
                     $cubage = 0;
                     $heightDimension = 0;
                     $largeDimension = 0;
-                    $deepDimension = 0;
+                    $weightAndDimensionsRequired = $this->get_option('weight_and_dimensions_required');
 
-                    if (count($package['contents']) > 1) {
+                    if (
+                        count($package['contents']) > 1 || $weightAndDimensionsRequired == 'yes') {
                         foreach ($package['contents'] as $content) {
                             if (!$this->validateDimensions($content['data'])) {
                                 return;
@@ -396,14 +409,17 @@ function swasendu() {
                     $communeId = (int) str_replace('C-', '', $package['destination']['state']);
                     $requestBody = [
                         'to' => $communeId,
-                        'weight' => floatval($totalWeight),
-                        'price_products' => (int) round($package['contents_cost']),
-                        'dimensions' => [
+                    ];
+
+                    if ($weightAndDimensionsRequired == 'yes') {
+                        $requestBody['weight'] = floatval($totalWeight);
+                        $requestBody['price_products'] = (int) round($package['contents_cost']);
+                        $requestBody['dimensions'] = [
                             'height' => floatval($heightDimension),
                             'large' => floatval($largeDimension),
                             'deep' => floatval($deepDimension),
-                        ]
-                    ];
+                        ];
+                    }
 
                     (new WC_Logger())->log('info', sprintf('Rate data: %s', json_encode($requestBody)));
 
@@ -430,9 +446,7 @@ function swasendu() {
                         $rate = json_decode($responseContent);
                         set_transient(
                             md5('swasendu-transit-days-' . get_current_user_id()),
-                            $rate->transit_days,
-                            500
-                        );
+                            $rate->transit_days                        );
                     }
 
                     if ($rate->transit_days == -1 && strtolower($rate->message) === 'error interno.') {

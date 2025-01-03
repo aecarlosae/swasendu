@@ -3,7 +3,7 @@
  * Plugin Name: Sendu
  * Plugin URI: https://www.softwareagil.com
  * Description: Sendu for woocommerce
- * Version: 1.1.0
+ * Version: 1.1.1
  * Author: Software Agil Ltda
  * Author URI: https://www.softwareagil.com
  * Text Domain: swasendu

@@ -5,6 +5,7 @@ namespace Aecarlosae\Swasendu;
 use \GuzzleHttp\Exception\GuzzleException;
 use \GuzzleHttp\Client as HttpClient;
 use WC_Logger;
+use WC_Order;
 
 class Swasendu {
     public static function run()
@@ -512,7 +513,9 @@ class Swasendu {
         add_filter('woocommerce_states', function($states) {
             $communes = get_posts([
                 'post_type' => 'swasendu_communes',
-                'numberposts' => -1
+                'numberposts' => -1,
+                'orderby' => 'name',
+                'order' => 'ASC',
             ]);
     
             $communeList = [];
@@ -535,6 +538,13 @@ class Swasendu {
             'woocommerce_order_status_changed',
             function($orderId, $oldStatus, $newStatus) {
                 $settings = get_option('woocommerce_wc_shipping_swasendu_settings');
+                
+                if (
+                    isset($settings['disable_work_order_generation'])
+                    && $settings['disable_work_order_generation'] == 'yes'
+                ) {
+                    return;
+                }
 
                 if ($newStatus !== str_replace('wc-', '', $settings['order_status'])) {
                     return;
@@ -559,6 +569,7 @@ class Swasendu {
                 $largeDimension = 0;
                 $deepDimension = 0;
                 $items = $order->get_items();
+                $orderAddressData = self::get_address_data($order);
                 
                 if (count($items) > 1) {
                     foreach ($items as $item) {
@@ -599,7 +610,7 @@ class Swasendu {
                         ]
                     ]);
 
-                    $communeId = (int) str_replace('C-', '', $order->get_shipping_state());
+                    $communeId = (int) str_replace('C-', '', $orderAddressData['state']);
                     $commune = get_posts([
                         'post_type' => 'swasendu_communes',
                         'meta_key' => 'commune_id',
@@ -615,15 +626,15 @@ class Swasendu {
                                         
                     $requestData = [
                         'work_order' => [
-                            'order' => (string) $orderId,
+                            'order' => sprintf('WC%s', (string) $orderId),
                             'category' => $settings['sell_category'] ?? __('Store sell', 'swasendu'),
                             'name' => sprintf(
                                 '%s %s',
-                                $order->get_shipping_first_name(),
-                                $order->get_shipping_last_name()
+                                $orderAddressData['first_name'],
+                                $orderAddressData['last_name']
                             ),
-                            'email' => $order->get_billing_email(),
-                            'phone' => $order->get_shipping_phone(),
+                            'email' => $orderAddressData['email'],
+                            'phone' => empty($orderAddressData['phone']) ? '000000000' : $orderAddressData['phone'],
                             'weight' => floatval($totalWeight),
                             'height' => floatval($heightDimension),
                             'large' => floatval($largeDimension),
@@ -634,9 +645,13 @@ class Swasendu {
                             'direction' => [
                                 'region_id' => (int) $commune->region_id,
                                 'comuna_id' => $communeId,
-                                'street' => $order->get_shipping_address_1(),
+                                'street' => $orderAddressData['address_1'],
                                 'numeration' => $swasenduUserAddress->number,
-                                'complement' => $order->get_shipping_address_2()
+                                'complement' => (
+                                    empty($orderAddressData['address_2'])
+                                    ? $orderAddressData['address_1']
+                                    : $orderAddressData['address_2']
+                                ),
                             ]
                         ]
                     ];
@@ -702,13 +717,42 @@ class Swasendu {
         );
     }
 
+    public static function get_address_data($order)
+    {
+        $billing_email = $order->get_billing_email();
+
+        $shipping_first_name = $order->get_shipping_first_name();
+        $shipping_last_name = $order->get_shipping_last_name();
+        $shipping_phone = $order->get_shipping_phone();
+        $shipping_address_1 = $order->get_shipping_address_1();
+        $shipping_address_2 = $order->get_shipping_address_2();
+        $shipping_state = $order->get_shipping_state();
+
+        $billing_first_name = $order->get_billing_first_name();
+        $billing_last_name = $order->get_billing_last_name();
+        $billing_phone = $order->get_billing_phone();
+        $billing_address_1 = $order->get_billing_address_1();
+        $billing_address_2 = $order->get_billing_address_2();
+        $billing_state = $order->get_billing_state();
+
+        return [
+            'email' => $billing_email,
+            'first_name' => !empty($shipping_first_name) ? $shipping_first_name : $billing_first_name,
+            'last_name' => !empty($shipping_last_name) ? $shipping_last_name : $billing_last_name,
+            'phone' => !empty($shipping_phone) ? $shipping_phone : $billing_phone,
+            'address_1' => !empty($shipping_address_1) ? $shipping_address_1 : $billing_address_1,
+            'address_2' => !empty($shipping_address_2) ? $shipping_address_2 : $billing_address_2,
+            'state' => !empty($shipping_state) ? $shipping_state : $billing_state,
+        ];
+    }
+
     public static function admin_order_data_after_shipping_address()
     {
         add_action( 'woocommerce_admin_order_data_after_shipping_address', function ($order) {
             $workOrder = get_posts([
                 'post_type' => 'swasendu_work_orders',
                 'meta_key' => 'order',
-                'meta_value' => $order->get_id(),
+                'meta_value' => sprintf('WC%s', $order->get_id()),
                 'numberposts' => 1,
             ])[0] ?? null;
 
@@ -806,7 +850,7 @@ class Swasendu {
         
         $transitDays = get_transient(md5('swasendu-transit-days-' . get_current_user_id()));
         $settings = get_option('woocommerce_wc_shipping_swasendu_settings');
-        $totalDays = $transitDays + $settings['preparation_days'];
+        $totalDays = $transitDays + 5 + $settings['preparation_days'];
         $response = [
             'delivery_date' => '',
             'address_rut' => '',

@@ -49,7 +49,7 @@ window.addEventListener('load', function () {
             <input type="text" id="shipping-swasendu_address_number" aria-label="Numeración" aria-invalid="false">
             <label for="shipping-swasendu_address_number">Numeración</label>
         </div>
-    `).insertBefore(jQuery("#shipping-address_2").parent());
+    `).insertAfter(jQuery("#shipping-address_2").parent());
     swasenduShippingFieldListener('swasendu_address_number', 'Por favor, ingrese el número.');
 
     jQuery("#shipping-address_1, #billing-address_1").attr('aria-label', 'Nombre de la calle');

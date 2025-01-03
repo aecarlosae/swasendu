@@ -272,3 +272,11 @@ msgstr "Días Feriados"
 #: src/main.php:110
 msgid "Enter the holiday in format: dd-mm-yyyy separated by comma"
 msgstr "Ingrese los días feriados en el formato: dd-mm-yyyy separados por coma"
+
+#: src/main.php
+msgid "Disable work order generation"
+msgstr "Desactivar la generación de Ordenes de trabajo"
+
+#: src/main.php
+msgid "Product weight and dimesions required to rate"
+msgstr "El peso y las dimensiones son obligatorias para tarificar"
