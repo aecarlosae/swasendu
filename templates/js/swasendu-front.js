@@ -36,9 +36,49 @@ window.addEventListener('load', function () {
         #billing-address_2 + label + .wc-block-components-validation-error
     `).hide();
 
+    if (jQuery("[id*='_company_field']").length == 1) {
+        jQuery(`
+            <p class="form-row rut-field validate-required form-row-wide" id="shipping-swasendu_address_rut_field">
+                <label for="shipping-swasendu_address_rut">RUT
+                    <abbr class="required" title="obligatorio">*</abbr>
+                </label>
+                <span class="woocommerce-input-wrapper">
+                    <input type="text" class="input-text" name="shipping-swasendu_address_rut" id="shipping-swasendu_address_rut" placeholder="RUT">
+                </span>
+            </p>
+        `).insertBefore(
+            jQuery("[id*='_company_field']").length > 0 ?
+            jQuery("[id*='_company_field']") :
+            (
+                jQuery("[id*='_country_field']").length > 0 ?
+                jQuery("[id*='_country_field']") :
+                jQuery("[id*='_address_1_field']")
+            )
+        );
+
+        jQuery(`
+            <p class="form-row number-field validate-required form-row-wide" id="shipping-swasendu_address_number_field">
+                <label for="shipping-swasendu_address_number">Numeración
+                    <abbr class="required" title="obligatorio">*</abbr>
+                </label>
+                <span class="woocommerce-input-wrapper">
+                    <input type="text" class="input-text" name="shipping-swasendu_address_number" id="shipping-swasendu_address_number" placeholder="Numeración">
+                </span>
+            </p>
+        `).insertBefore(
+            jQuery("[id*='_company_field']").length > 0 ?
+            jQuery("[id*='_company_field']") :
+            (
+                jQuery("[id*='_country_field']").length > 0 ?
+                jQuery("[id*='_country_field']") :
+                jQuery("[id*='_address_1_field']")
+            )
+        );
+    }
+
     jQuery(`
         <div class="wc-block-components-address-swasendu_address_rut wc-block-components-text-input">
-            <input type="text" id="shipping-swasendu_address_rut" aria-label="Numeración" aria-invalid="false">
+            <input type="text" class="input-text" id="shipping-swasendu_address_rut" aria-label="RUT" aria-invalid="false">
             <label for="shipping-swasendu_address_rut">RUT</label>
         </div>
     `).insertBefore(jQuery("#shipping-address_1").parent());
@@ -90,8 +130,8 @@ window.addEventListener('load', function () {
                 //     jQuery("#shipping-swasendu_address_number").focus();
                 // }
             } else {
-                address_rut = jQuery('#shipping-swasendu_address_rut').val();
-                address_number = jQuery('#shipping-swasendu_address_number').val();
+                address_rut = jQuery(document).find('#shipping-swasendu_address_rut').val();
+                address_number = jQuery(document).find('#shipping-swasendu_address_number').val();
                 jQuery('.wc-block-components-checkout-place-order-button').prop('disabled', false);
             }
 
@@ -100,7 +140,7 @@ window.addEventListener('load', function () {
                 type: 'post',
                 data: {
                     action: 'delivery_date',
-                    address_email: jQuery('#email').val(),
+                    address_email: jQuery('#email').length > 0 ? jQuery('#email').val() : jQuery('#billing_email').val(),
                     address_rut: address_rut,
                     address_number: address_number,
                     nonce: delivery_date.nonce,

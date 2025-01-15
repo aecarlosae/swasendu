@@ -369,7 +369,7 @@ function swasendu() {
                     $weightAndDimensionsRequired = $this->get_option('weight_and_dimensions_required');
 
                     if (
-                        count($package['contents']) > 1 || $weightAndDimensionsRequired == 'yes') {
+                        count($package['contents']) > 1 && $weightAndDimensionsRequired == 'yes') {
                         foreach ($package['contents'] as $content) {
                             if (!$this->validateDimensions($content['data'])) {
                                 return;
@@ -396,14 +396,14 @@ function swasendu() {
                     } else {
                         $content = $package['contents'][array_key_first($package['contents'])];
 
-                        if (!$this->validateDimensions($content['data'])) {
+                        if (!$this->validateDimensions($content['data']) && $weightAndDimensionsRequired == 'yes') {
                             return;
                         }
 
-                        $totalWeight += $content['quantity'] * $content['data']->get_weight();
-                        $heightDimension = $content['data']->get_height();
-                        $largeDimension = $content['data']->get_length();
-                        $deepDimension = $content['data']->get_width();
+                        $totalWeight += $content['quantity'] * (float)$content['data']->get_weight();
+                        $heightDimension = (float)$content['data']->get_height();
+                        $largeDimension = (float)$content['data']->get_length();
+                        $deepDimension = (float)$content['data']->get_width();
                     }
 
                     $communeId = (int) str_replace('C-', '', $package['destination']['state']);

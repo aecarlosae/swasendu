@@ -595,10 +595,10 @@ class Swasendu {
                 } else {
                     $item = $items[array_key_first($items)];
                     $product = $item->get_product();
-                    $totalWeight += $item->get_quantity() * $product->get_weight();
-                    $heightDimension = $product->get_height();
-                    $largeDimension = $product->get_length();
-                    $deepDimension = $product->get_width();
+                    $totalWeight += $item->get_quantity() * (float) $product->get_weight();
+                    $heightDimension = (float) $product->get_height();
+                    $largeDimension = (float) $product->get_length();
+                    $deepDimension = (float) $product->get_width();
                 }
                 
                 try {

@@ -68,6 +68,22 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
                 ]
             );
         });
+
+        // Old checkout page
+        add_action('woocommerce_review_order_before_payment', function () {
+            echo '<div>
+                <div style="border-top: 1px solid hsla(0,0%,7%,.11);padding: 16px 0;">
+                    <div style="padding-left: 16px; padding-right: 16px;display:flex;">
+                        <span style="flex-grow: 1;">' . __('Delivery date', 'swasendu') . '</span>
+                        <span
+                            style="font-weight: 700;white-space: nowrap;"
+                            class="swasendu-delivery-date">
+                            --
+                        </span>
+                    </div>
+                </div>
+            </div>';
+        });
     
         
     }
