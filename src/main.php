@@ -366,10 +366,9 @@ function swasendu() {
                     $cubage = 0;
                     $heightDimension = 0;
                     $largeDimension = 0;
-                    $weightAndDimensionsRequired = $this->get_option('weight_and_dimensions_required');
 
                     if (
-                        count($package['contents']) > 1 && $weightAndDimensionsRequired == 'yes') {
+                        count($package['contents']) > 1) {
                         foreach ($package['contents'] as $content) {
                             if (!$this->validateDimensions($content['data'])) {
                                 return;
@@ -396,7 +395,7 @@ function swasendu() {
                     } else {
                         $content = $package['contents'][array_key_first($package['contents'])];
 
-                        if (!$this->validateDimensions($content['data']) && $weightAndDimensionsRequired == 'yes') {
+                        if (!$this->validateDimensions($content['data'])) {
                             return;
                         }
 
@@ -411,6 +410,8 @@ function swasendu() {
                         'to' => $communeId,
                     ];
 
+
+                    $weightAndDimensionsRequired = $this->get_option('weight_and_dimensions_required');
                     if ($weightAndDimensionsRequired == 'yes') {
                         $requestBody['weight'] = floatval($totalWeight);
                         $requestBody['price_products'] = (int) round($package['contents_cost']);
@@ -486,6 +487,12 @@ function swasendu() {
 
             public function validateDimensions($product)
             {
+                $weightAndDimensionsRequired = $this->get_option('weight_and_dimensions_required');
+                
+                if ($weightAndDimensionsRequired == 'no') {
+                    return true;
+                }
+
                 if (empty($product->get_weight())) {
                     wc_add_notice(
                         sprintf(
