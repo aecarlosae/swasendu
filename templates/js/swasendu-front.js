@@ -36,7 +36,7 @@ window.addEventListener('load', function () {
         #billing-address_2 + label + .wc-block-components-validation-error
     `).hide();
 
-    if (jQuery("[id*='_company_field']").length == 1) {
+    if (jQuery("[id*='_company_field']").length > 0) {
         jQuery(`
             <p class="form-row rut-field validate-required form-row-wide" id="shipping-swasendu_address_rut_field">
                 <label for="shipping-swasendu_address_rut">RUT
