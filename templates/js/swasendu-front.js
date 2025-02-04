@@ -27,7 +27,9 @@ window.addEventListener('load', function () {
         });
     }
 
-    jQuery("#shipping-state label, #billing-state label").text('Comuna');
+    
+    jQuery("#shipping-state label, #billing-state label, label[for=billing_state]").html('Comuna <abbr class="required" title="obligatorio">*</abbr>');
+    jQuery("label[for=billing_city]").html('Región <abbr class="required" title="obligatorio">*</abbr>');
     jQuery("#shipping-address_2, #billing-address_2").attr('aria-label', 'Complemento');
     jQuery("#shipping-address_2").prop('required', true);
     jQuery("#shipping-address_2 + label, #billing-address_2 + label").text('Complemento');

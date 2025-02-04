@@ -70,10 +70,10 @@ function swasendu() {
                         'description' => __( 'Product weight and dimesions required to rate', 'swasendu'),
                         'default' => false
                     ],
-                    'disable_work_order_generation' => [
-                        'title' => __('Disable work order generation', 'swasendu'),
+                    'enable_work_order_generation' => [
+                        'title' => __('Enable work order generation', 'swasendu'),
                         'type' => 'checkbox',
-                        'description' => __( 'Disable work order generation', 'swasendu'),
+                        'description' => __( 'Enable work order generation', 'swasendu'),
                         'default' => true
                     ],
                     'order_status' => [
@@ -81,31 +81,36 @@ function swasendu() {
                         'type' => 'select',
                         'options' => wc_get_order_statuses(),
                         'description' => __( 'Select the status to generate Sendu work order', 'swasendu'),
-                        'default' => 'wc-processing'
+                        'default' => 'wc-processing',
+                        'class' => 'depend-on-work-order-generation',
                     ],
                     'lost_coverage' => [
                         'title' => __('Lost coverage', 'swasendu'),
                         'type' => 'checkbox',
                         'description' => __( 'Lost coverage', 'swasendu'),
-                        'default' => false
+                        'default' => false,
+                        'class' => 'depend-on-work-order-generation',
                     ],
                     'show_courier_name' => [
                         'title' => __('Show courier name', 'swasendu'),
                         'type' => 'checkbox',
                         'description' => __( 'Show courier name', 'swasendu'),
-                        'default' => true
+                        'default' => true,
+                        'class' => 'depend-on-work-order-generation',
                     ],
                     'unavailable_shipping_msg' => [
                         'title' => __('Unavailable shipping message', 'swasendu'),
                         'type' => 'text',
                         'description' => __( 'Enter the unavailable shipping message', 'swasendu'),
-                        'default' => __( 'No available shipping for your commune', 'swasendu')
+                        'default' => __( 'No available shipping for your commune', 'swasendu'),
+                        'class' => 'depend-on-work-order-generation',
                     ],
                     'show_delivery_date' => [
                         'title' => __('Show estimated delivery date', 'swasendu'),
                         'type' => 'checkbox',
                         'description' => __('Show estimated delivery date', 'swasendu'),
-                        'default' => true
+                        'default' => true,
+                        'class' => 'depend-on-work-order-generation',
                     ],
                     'preparation_days' => [
                         'title' => __('Preparation days', 'swasendu'),
@@ -121,12 +126,14 @@ function swasendu() {
                             }
                         
                             return $value;
-                          }
+                        },
+                        'class' => 'depend-on-work-order-generation',
                     ],
                     'holidays' => [
                         'title' => __('Holidays', 'swasendu'),
                         'type' => 'textarea',
-                        'description' => __('Enter the holiday in format: dd-mm-yyyy separated by comma', 'swasendu')
+                        'description' => __('Enter the holiday in format: dd-mm-yyyy separated by comma', 'swasendu'),
+                        'class' => 'depend-on-work-order-generation',
                     ],
                 ];
             }

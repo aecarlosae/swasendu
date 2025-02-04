@@ -3,7 +3,7 @@
  * Plugin Name: Sendu
  * Plugin URI: https://www.softwareagil.com
  * Description: Sendu for woocommerce
- * Version: 1.1.1
+ * Version: 1.1.2
  * Author: Software Agil Ltda
  * Author URI: https://www.softwareagil.com
  * Text Domain: swasendu
@@ -16,8 +16,12 @@ defined( 'ABSPATH' ) || exit;
 
 if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
     require 'vendor/autoload.php';
-    define('PLUGIN_BASENAME', plugin_basename(__FILE__));
-    define('PLUGIN_BASE_DIRNAME', dirname(PLUGIN_BASENAME));
+    define('SWASENDU_PLUGIN_BASENAME', plugin_basename(__FILE__));
+    define('SWASENDU_PLUGIN_BASE_DIRNAME', dirname(SWASENDU_PLUGIN_BASENAME));
+
+    if (!defined('SWASENDU_PLUGIN_FILE')) {
+        define('SWASENDU_PLUGIN_FILE', __FILE__);
+    }
     
     Aecarlosae\Swasendu\Swasendu::run(__FILE__);
 

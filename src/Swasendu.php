@@ -20,12 +20,43 @@ class Swasendu {
         self::plugin_action_links_swasendu();
         self::add_menu();
         self::delivery_date_ajax();
+        self::load_admin_script();
+    }
+
+    public static function load_admin_script()
+    {
+        add_action('admin_enqueue_scripts', function($hook) {
+            if ('woocommerce_page_wc-settings' == $hook
+                && (isset($_GET['page']) && $_GET['page'] == 'wc-settings')
+                && (isset($_GET['tab']) && $_GET['tab'] == 'shipping')
+                && (isset($_GET['section']) && $_GET['section'] == 'wc_shipping_swasendu')
+            ) {
+                // Hide by default
+                echo '<style type="text/css">
+                    table.form-table tr:has(.depend-on-work-order-generation) {visibility:collapse !important;}
+                </style>';
+
+                wp_enqueue_script(
+                    "admin-swasendu-script",
+                    plugins_url('/templates/js/', SWASENDU_PLUGIN_FILE) . 'admin-swasendu.js',
+                    ['jquery']
+                );
+
+                wp_localize_script(
+                    'admin-swasendu-script',
+                    'swasendu',
+                    [
+                        'url' => admin_url('admin-ajax.php'),
+                    ]
+                );
+            }
+        });
     }
 
     public static function init()
     {
         add_action('init', function () {
-            load_plugin_textdomain('swasendu', false, PLUGIN_BASE_DIRNAME . '/i18n/languages/'); 
+            load_plugin_textdomain('swasendu', false, SWASENDU_PLUGIN_BASE_DIRNAME . '/i18n/languages/'); 
 
             # Regions
             register_post_type(
@@ -540,8 +571,8 @@ class Swasendu {
                 $settings = get_option('woocommerce_wc_shipping_swasendu_settings');
                 
                 if (
-                    isset($settings['disable_work_order_generation'])
-                    && $settings['disable_work_order_generation'] == 'yes'
+                    isset($settings['enable_work_order_generation'])
+                    && $settings['enable_work_order_generation'] == 'no'
                 ) {
                     return;
                 }
@@ -799,7 +830,7 @@ class Swasendu {
 
     public static function plugin_action_links_swasendu()
     {
-        add_filter('plugin_action_links_' . PLUGIN_BASENAME, function($links) {
+        add_filter('plugin_action_links_' . SWASENDU_PLUGIN_BASENAME, function($links) {
             $url = get_admin_url() . 'admin.php?page=wc-settings&tab=shipping&section=wc_shipping_swasendu';
             $links[] = '<a href="' . $url . '">' . __('Settings', 'swasendu') . '</a>';
             

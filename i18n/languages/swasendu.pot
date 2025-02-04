@@ -274,8 +274,8 @@ msgid "Enter the holiday in format: dd-mm-yyyy separated by comma"
 msgstr "Ingrese los días feriados en el formato: dd-mm-yyyy separados por coma"
 
 #: src/main.php
-msgid "Disable work order generation"
-msgstr "Desactivar la generación de Ordenes de trabajo"
+msgid "Enable work order generation"
+msgstr "Activar la generación de Ordenes de trabajo"
 
 #: src/main.php
 msgid "Product weight and dimesions required to rate"
