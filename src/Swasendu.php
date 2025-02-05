@@ -31,10 +31,13 @@ class Swasendu {
                 && (isset($_GET['tab']) && $_GET['tab'] == 'shipping')
                 && (isset($_GET['section']) && $_GET['section'] == 'wc_shipping_swasendu')
             ) {
+                $settings = get_option('woocommerce_wc_shipping_swasendu_settings');
                 // Hide by default
-                echo '<style type="text/css">
-                    table.form-table tr:has(.depend-on-work-order-generation) {visibility:collapse !important;}
-                </style>';
+                if ($settings['enable_work_order_generation'] == 'no') {
+                    echo '<style type="text/css">
+                        table.form-table tr:has(.depend-on-work-order-generation) {visibility:collapse !important;}
+                    </style>';
+                }
 
                 wp_enqueue_script(
                     "admin-swasendu-script",
